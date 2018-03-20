@@ -72,6 +72,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
+            'functest-bundle-deploy = zaza.deploy:main',
             'current-apps = zaza.model:main',
             'tempest-config = zaza.tempest_config:main',
         ]
