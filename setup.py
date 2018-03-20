@@ -8,7 +8,8 @@ from setuptools.command.test import test as TestCommand
 
 version = "0.0.1.dev1"
 install_require = [
-    'juju'
+    'juju',
+    'hvac'
 ]
 
 tests_require = [
