@@ -123,7 +123,7 @@ class VaultTest(unittest.TestCase):
             vault_creds = vutils.get_credentails_from_file(auth_file)
         else:
             vault_creds = vutils.init_vault(unseal_client[1])
-            vutils.write_credentails(auth_file, cls.vault_creds)
+            vutils.write_credentails(auth_file, vault_creds)
         vutils.unseal_all(cls.clients, vault_creds['keys'][0])
         vutils.auth_all(cls.clients, vault_creds['root_token'])
 
