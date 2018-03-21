@@ -8,7 +8,6 @@ import sys
 import juju_wait
 
 BUNDLE_DIR = "./tests/bundles/"
-TESTS_FILE = "./tests/tests.py"
 
 sys.path.append('./tests')
 import tests
@@ -27,9 +26,10 @@ def deploy():
     juju_wait.wait()
 
 def run_tests():
-    
-    suite = unittest.TestLoader().loadTestsFromTestCase(tests.TESTS[0])
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    for testcase in tests.TESTS:
+        suite = unittest.TestLoader().loadTestsFromTestCase(testcase)
+        test_result = unittest.TextTestRunner(verbosity=2).run(suite)
+        assert test_result.wasSuccessful(), "Test run failed"
 
 if __name__ == '__main__':
     main()
