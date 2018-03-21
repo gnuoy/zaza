@@ -10,6 +10,7 @@ import urllib3
 import uuid
 import yaml
 
+import zaza.charms_tests.test_utils as test_utils
 import zaza.model
 
 
@@ -152,7 +153,7 @@ class VaultTest(unittest.TestCase):
             # Now check all clients read the same value back
             self.check_read(key, value)
 
-    @skipIfNotHA('vault')
+    @test_utils.skipIfNotHA('vault')
     def test_vault_ha_statuses(self):
         leader = []
         leader_address = []
