@@ -28,7 +28,7 @@ class VaultUtils(object):
             print("Creating client for {}".format(unit))
             vault_url = 'http://{}:8200'.format(unit)
             print(vault_url)
-            clients.append((unit, get_client(vault_url)))
+            clients.append((unit, self.get_client(vault_url)))
         return clients
     
     
@@ -78,21 +78,22 @@ class VaultTest(unittest.TestCase):
     
     
     def setUp(self):
-        vutils = VaultUtils() 
-        self.clients = vutils.get_clients(units)
-        auth_file = "{}/tests/data.yaml".format(os.getcwd())
+        self.vutils = VaultUtils()
+        units = zaza.model.unit_ips('vault')
+        self.clients = self.vutils.get_clients(units)
+        auth_file = "/tmp/vault_tests.yaml"
         self.unseal_client = self.clients[0]
         print("Picked {} for performing unseal".format(self.unseal_client[0]))
-        initialized = vutils.is_initialized(self.unseal_client)
+        initialized = self.vutils.is_initialized(self.unseal_client)
         if initialized:
-            self.vault_creds = vutils.get_credentails(auth_file)
+            self.vault_creds = self.vutils.get_credentails(auth_file)
         else:
             print("Initializing vault")
-            self.vault_creds = vutils.init_vault(unseal_client[1])
-            vutils.write_credentails(auth_file, self.vault_creds)
+            self.vault_creds = self.vutils.init_vault(self.unseal_client[1])
+            self.vutils.write_credentails(auth_file, self.vault_creds)
         self.keys = self.vault_creds['keys']
-        vutils.unseal_all(self.clients, keys[0])
-        vutils.auth_all(self.clients, vault_creds['root_token'])
+        self.vutils.unseal_all(self.clients, keys[0])
+        self.vutils.auth_all(self.clients, vault_creds['root_token'])
 
     def test_check_authenticated(self):
         for (addr, client) in self.clients:
