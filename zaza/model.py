@@ -19,7 +19,7 @@ async def deployed(filter=None):
         await model.disconnect()
 
 
-async def unit_ips(service_name):
+async def _unit_ips(service_name):
     # Create a Model instance. We need to connect our Model to a Juju api
     # server before we can use it.
     model = Model()
@@ -27,10 +27,13 @@ async def unit_ips(service_name):
     await model.connect_current()
     app = model.applications[service_name]
     ips = []
-    for unit in vault_app.units:
-        ips.append(units.public_address)
+    for unit in app.units:
+        ips.append(unit.public_address)
     await model.disconnect()
     return ips
+
+def unit_ips(service_name):
+    return loop.run(_unit_ips(service_name))
 
 def main():
     # Run the deploy coroutine in an asyncio event loop, using a helper
