@@ -1,4 +1,5 @@
 import argparse
+import unittest
 import logging
 import os
 import subprocess
@@ -7,12 +8,16 @@ import sys
 import juju_wait
 
 BUNDLE_DIR = "./tests/bundles/"
+TESTS_FILE = "./tests/tests.py"
+
+sys.path.append('./tests')
+import tests
 
 def deploy_bundle(bundle):
     logging.info("Deploying bundle {}".format(bundle))    
     subprocess.check_call(['juju', 'deploy', bundle])
 
-def main():
+def deploy():
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument("bundle", help="Bundle to deploy")
@@ -20,6 +25,11 @@ def main():
     deploy_bundle(os.path.join(BUNDLE_DIR, args.bundle))
     logging.info("Waiting for environment to settle")
     juju_wait.wait()
+
+def run_tests():
+    
+    suite = unittest.TestLoader().loadTestsFromTestCase(tests.TESTS[0])
+    unittest.TextTestRunner(verbosity=2).run(suite)
 
 if __name__ == '__main__':
     main()
