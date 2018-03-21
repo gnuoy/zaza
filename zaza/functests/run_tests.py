@@ -1,6 +1,5 @@
+import sys
 import unittest
-
-BUNDLE_DIR = "./tests/bundles/"
 
 sys.path.append('./tests')
 import tests
