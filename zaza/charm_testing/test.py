@@ -1,7 +1,7 @@
 import argparse
 import unittest
 
-import zaza.functests.utils as utils
+import zaza.charm_testing.utils as utils
 
 def run_test_list(tests):
     """Run the tests as defined in the list of test classes in series.

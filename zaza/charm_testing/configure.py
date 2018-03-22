@@ -1,6 +1,6 @@
 import argparse
 
-import zaza.functests.utils as utils
+import zaza.charm_testing.utils as utils
 
 def run_configure_list(functions):
     """Run the configure scripts as defined in the list of test classes in
