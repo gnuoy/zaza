@@ -6,7 +6,7 @@ import zaza.charm_testing.destroy as destroy
 import zaza.charm_testing.utils as utils
 import zaza.charm_testing.prepare as prepare
 import zaza.charm_testing.deploy as deploy
-import zaza.charm_testing.tests as tests
+import zaza.charm_testing.test as test
 
 def func_test_runner():
     """Deploy the bundles and run the tests as defined by the charms tests.yaml
@@ -24,7 +24,7 @@ def func_test_runner():
         # Configure
         configure.run_configure_list(test_config['configure'])
         # Test
-        tests.run_test_list(test_config['tests'])
+        test.run_test_list(test_config['tests'])
         # Destroy
         destroy.clean_up(model=model_name)
 
