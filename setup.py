@@ -74,8 +74,12 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'functest-run-tests = zaza.functests.deploy:run_tests',
-            'functest-bundle-deploy = zaza.functests.deploy:deploy',
+            'functest-run-suite = zaza.functests.func_test_runner:main',
+            'functest-deploy = zaza.functests.deploy:main',
+            'functest-configure = zaza.functests.configure:main',
+            'functest-destroy = zaza.functests.destroy:main',
+            'functest-prepare = zaza.functests.prepare:main',
+            'functest-test = zaza.functests.test:main',
             'current-apps = zaza.model:main',
             'tempest-config = zaza.tempest_config:main',
         ]
