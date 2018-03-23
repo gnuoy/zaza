@@ -17,6 +17,7 @@ def run_test_list(tests):
         assert test_result.wasSuccessful(), "Test run failed"
 
 def test(tests):
+    """Run all steps to execute tests against the model"""
     run_test_list(tests)
 
 def main():

@@ -1,3 +1,4 @@
+import logging
 import subprocess
 
 def destroy_model(model_name):
@@ -10,6 +11,11 @@ def destroy_model(model_name):
     subprocess.check_call(['juju', 'destroy-model', '--yes', model_name])
 
 def clean_up(model_name):
+    """Run all steps to cleaup after a test run
+
+    :param model: Name of model to remove
+    :type bundle: str
+    """
     destroy_model(model_name)
 
 def main():

@@ -1,3 +1,4 @@
+import logging
 import subprocess
 
 def add_model(model_name):
@@ -10,6 +11,11 @@ def add_model(model_name):
     subprocess.check_call(['juju', 'add-model', model_name])
 
 def prepare(model_name):
+    """Run all steps to prepare the environment before a functional test run
+
+    :param model: Name of model to add
+    :type bundle: str
+    """
     add_model(model_name)
 
 def main():

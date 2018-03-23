@@ -1,14 +1,10 @@
 import argparse
 import logging
-import os
 import subprocess
 import sys
 
 import juju_wait
 
-
-BUNDLE_DIR = "./tests/bundles/"
-DEFAULT_TEST_CONFIG = "./tests/tests.yaml"
 
 def deploy_bundle(bundle, model, wait=True):
     """Deploy the given bundle file in the specified model

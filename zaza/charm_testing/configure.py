@@ -6,19 +6,23 @@ def run_configure_list(functions):
     """Run the configure scripts as defined in the list of test classes in
        series.
 
-    :param functions: List of functions
-    :type tests: ['zaza.charms_tests.svc.TestSVCClass1', ...]
-    :raises: AssertionError if test run fails
+    :param functions: List of configure functions functions
+    :type tests: ['zaza.charms_tests.svc.setup', ...]
     """
     for func in functions:
         utils.get_class(func)()
 
 def configure(functions):
+    """Run all post-deployment configuration steps
+
+    :param functions: List of configure functions functions
+    :type tests: ['zaza.charms_tests.svc.setup', ...]"""
     run_configure_list(functions)
 
 def main():
-    """Run the tests defined by the command line args or if none were provided
-       read the tests from the charms tests.yaml config file"""
+    """Run the configuration defined by the command line args or if none were
+       provided read the configuration functions  from the charms tests.yaml
+       config file"""
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument('-c','--configfuncs', nargs='+',

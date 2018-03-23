@@ -1,4 +1,8 @@
+import importlib
 import yaml
+
+BUNDLE_DIR = "./tests/bundles/"
+DEFAULT_TEST_CONFIG = "./tests/tests.yaml"
 
 def get_charm_config():
     """Read the yaml test config file and return the resulting config
