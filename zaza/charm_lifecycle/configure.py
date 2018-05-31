@@ -20,6 +20,8 @@ def run_configure_list(functions):
 def configure(model_name, functions):
     """Run all post-deployment configuration steps
 
+    :param model_name: Name of model to configure apps in
+    :type model_name: str
     :param functions: List of configure functions functions
     :type tests: ['zaza.charms_tests.svc.setup', ...]"""
     utils.set_juju_model(model_name)

@@ -13,6 +13,7 @@ install_require = [
     'hvac',
     'jinja2',
     'juju',
+    'jujucrashdump==1.0.0',
     'juju-wait',
     'PyYAML',
     'tenacity',
@@ -21,7 +22,9 @@ install_require = [
     'python-novaclient',
     'python-neutronclient',
 ]
-
+dependency_links = [
+    "git+https://github.com/juju/juju-crashdump.git#egg=jujucrashdump-1.0.0"
+]
 tests_require = [
     'tox >= 2.3.1',
 ]
@@ -74,15 +77,18 @@ setup(
             'functest-destroy = zaza.charm_lifecycle.destroy:main',
             'functest-prepare = zaza.charm_lifecycle.prepare:main',
             'functest-test = zaza.charm_lifecycle.test:main',
+            'functest-collect = zaza.charm_lifecycle.collect:main',
             'current-apps = zaza.model:main',
             'tempest-config = zaza.tempest_config:main',
         ]
     },
+    use_scm_version=True,
     license='Apache-2.0: http://www.apache.org/licenses/LICENSE-2.0',
     packages=find_packages(exclude=["unit_tests"]),
     zip_safe=False,
     cmdclass={'test': Tox},
     install_requires=install_require,
+    dependency_links=dependency_links,
     extras_require={
         'testing': tests_require,
     },

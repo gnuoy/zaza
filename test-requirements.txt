@@ -28,5 +28,6 @@ python-swiftclient
 tenacity
 distro-info
 paramiko
+git+https://github.com/juju/juju-crashdump.git#egg=jujucrashdump
 
 
