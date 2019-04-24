@@ -1043,7 +1043,52 @@ class TestOpenStackUtils(ut_utils.BaseTestCase):
                 'OS_DOMAIN_NAME': 'service_domain',
                 'OS_USER_DOMAIN_NAME': 'service_domain',
                 'OS_PROJECT_NAME': 'services',
+                'OS_TENANT_NAME': 'services',
                 'OS_PROJECT_DOMAIN_NAME': 'service_domain',
                 'API_VERSION': 3},
+            scope='PROJECT',
+            verify=None)
+
+    def test_get_keystone_session_from_relation_v2(self):
+        self.patch_object(openstack_utils.juju_utils, "get_relation_from_unit")
+        self.patch_object(openstack_utils, "get_overcloud_auth")
+        self.patch_object(openstack_utils, "get_keystone_session")
+        self.get_relation_from_unit.return_value = {
+            'admin_token': 'Ry8mN6',
+            'api_version': '2',
+            'auth_host': '10.5.0.36',
+            'auth_port': '35357',
+            'auth_protocol': 'http',
+            'egress-subnets': '10.5.0.36/32',
+            'ingress-address': '10.5.0.36',
+            'private-address': '10.5.0.36',
+            'service_host': '10.5.0.36',
+            'service_password': 'CKGsVg2p',
+            'service_port': '5000',
+            'service_protocol': 'http',
+            'service_tenant': 'services',
+            'service_tenant_id': '78b6f62c2aa2',
+            'service_username': 's3_swift'}
+        self.get_overcloud_auth.return_value = {
+            'OS_AUTH_URL': 'http://10.5.0.36:5000/v2.0',
+            'OS_TENANT_NAME': 'admin',
+            'OS_USERNAME': 'admin',
+            'OS_PASSWORD': 'Eirioxohphahliza',
+            'OS_REGION_NAME': 'RegionOne',
+            'API_VERSION': 2}
+        openstack_utils.get_keystone_session_from_relation('swift-proxy')
+        self.get_relation_from_unit.assert_called_once_with(
+            'swift-proxy',
+            'keystone',
+            'identity-service')
+        self.get_keystone_session.assert_called_once_with(
+            {
+                'OS_AUTH_URL': 'http://10.5.0.36:5000/v2.0',
+                'OS_TENANT_NAME': 'services',
+                'OS_USERNAME': 's3_swift',
+                'OS_PASSWORD': 'CKGsVg2p',
+                'OS_REGION_NAME': 'RegionOne',
+                'API_VERSION': 2,
+                'OS_PROJECT_NAME': 'services'},
             scope='PROJECT',
             verify=None)

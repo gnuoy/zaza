@@ -56,6 +56,9 @@ class SwiftImageCreateTest(test_utils.OpenStackBaseTest):
         for ob in objects:
             if '{}-'.format(image['id']) in ob['name']:
                 total_bytes = total_bytes + int(ob['bytes'])
+        logging.info(
+            'Checking glance image size {} matches swift '
+            'image size {}'.format(image['size'], total_bytes))
         self.assertEqual(image['size'], total_bytes)
         openstack_utils.delete_image(self.glance_client, image['id'])
 
