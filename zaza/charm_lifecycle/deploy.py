@@ -31,7 +31,7 @@ DEFAULT_OVERLAY_TEMPLATE_DIR = 'tests/bundles/overlays'
 LOCAL_OVERLAY_TEMPLATE = """
 applications:
   {{ charm_name }}:
-    charm: {{ charm_location }}
+    charm: {{ charm_abs_path }}
 """
 LOCAL_OVERLAY_TEMPLATE_NAME = 'local-charm-overlay.yaml'
 LOCAL_OVERLAY_ENABLED_KEY = 'local_overlay_enabled'
@@ -51,6 +51,7 @@ def get_charm_config_context():
     test_config = utils.get_charm_config()
     ctxt = {
         'charm_name': test_config['charm_name'],
+        'charm_abs_path': bundle_dir_abspath,
         'charm_location': '{}/../../../{}'
                           .format(bundle_dir_abspath,
                                   test_config['charm_name']),
