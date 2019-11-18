@@ -160,6 +160,16 @@ def get_environment_deploy_multi_ordered(deployment_directive):
                     alias,
                     generate_model_name(),
                     bundle))
+    cmr_steps = get_cmr_steps()
+    cmr_deploys = []
+    for model_deploy in model_deploys:
+        if cmr_steps.get(model_deploy.model_alias):
+            cmr_deploys.append(
+                ModelDeploy(
+                    model_deploy.model_alias,
+                    model_deploy.model_name,
+                    cmr_steps[model_deploy.model_alias]))
+    model_deploys.extend(cmr_deploys)
     return EnvironmentDeploy(env_alias, model_deploys, True)
 
 
@@ -259,6 +269,10 @@ def get_config_steps():
     :rtype: Dict[str, List[str]]
     """
     return _concat_model_alias_maps(get_charm_config().get('configure', []))
+
+
+def get_cmr_steps():
+    return _concat_model_alias_maps(get_charm_config().get('cmr', []))
 
 
 def get_test_steps():
