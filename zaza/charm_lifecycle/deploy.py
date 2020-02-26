@@ -286,7 +286,7 @@ def deploy_bundle(bundle, model, model_ctxt=None):
     """
     logging.info("Deploying bundle '{}' on to '{}' model"
                  .format(bundle, model))
-    cmd = ['juju', 'deploy', '-m', model, bundle]
+    cmd = ['juju', 'deploy', '--force', '-m', model, bundle]
     with tempfile.TemporaryDirectory() as tmpdirname:
         for overlay in render_overlays(bundle, tmpdirname,
                                        model_ctxt=model_ctxt):
