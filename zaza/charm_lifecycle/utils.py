@@ -31,7 +31,7 @@ RAW_BUNDLE = "raw-bundle"
 SINGLE_ALIASED = "single-aliased"
 MUTLI_UNORDERED = "multi-unordered"
 MUTLI_ORDERED = "multi-ordered"
-BUNDLE_GROUP = "bundle-group"
+# BUNDLE_GROUP = "bundle-group"
 
 """
   A ModelDeploy represents a deployment of one bundle to one model. An
@@ -102,8 +102,18 @@ def get_default_env_deploy_name(reset_count=False):
 #        if group['group'] == group_name:
 #            return group
 # 
-#def get_bundle_groups():
-#    return get_charm_config()['bundle_groups']
+def get_bundle_groups(bundle_key):
+    groups = {}
+    for entry in get_charm_config()[bundle_key]:
+        try:
+            if 'group' in entry.keys():
+                groups[entry['group']] = entry
+        except AttributeError:
+            pass
+    return groups
+
+def get_bundle_group_names(bundle_key):
+    return get_bundle_groups(bundle_key).keys()
 #
 #def get_bundle_group_namess():
 #    return [g['group_name'] for g in get_bundle_groups()]
@@ -117,20 +127,29 @@ def get_default_env_deploy_name(reset_count=False):
 #            bundle_groups.append(deploy_directive)
 #    return bundle_groups
 
-def is_bundle_group(deployment_directive):
+def is_bundle_group(deployment_directive, bundle_key):
+    return deployment_directive in get_bundle_group_names(bundle_key)
+
+def is_bundle_group_definition(deployment_directive):
     try:
         return 'group' in deployment_directive.keys()
     except AttributeError:
         return False
+#    print(get_bundle_groups(bundle_key))
+#    assert 1 == 2
+#    try:
+#        return 'group' in deployment_directive.keys()
+#    except AttributeError:
+#        return False
 
-def get_deployment_type(deployment_directive):
+def get_deployment_type(deployment_directive, bundle_key):
     """Given a deployment directive reverse engineer the type.
 
     :returns: The type of the deployment_directive
     :rtype: str
     """
-    if is_bundle_group(deployment_directive):
-        return BUNDLE_GROUP
+#    if is_bundle_group(deployment_directive, bundle_key):
+#        return BUNDLE_GROUP
     if isinstance(deployment_directive, str):
         return RAW_BUNDLE
     if isinstance(deployment_directive, collections.Mapping):
@@ -144,7 +163,7 @@ def get_deployment_type(deployment_directive):
             return MUTLI_UNORDERED
 
 
-def get_environment_deploy(deployment_directive):
+def get_environment_deploy(deployment_directive, bundle_key):
     """Get the EnvironmentDeploy object from the deployment directive.
 
     :returns: The EnvironmentDeploy for the give deployment directive.
@@ -155,28 +174,42 @@ def get_environment_deploy(deployment_directive):
         MUTLI_ORDERED: get_environment_deploy_multi_ordered,
         SINGLE_ALIASED: get_environment_deploy_single_aliased,
         MUTLI_UNORDERED: get_environment_deploy_multi_unordered}
-    logging.info("{} is a {}".format(deployment_directive, get_deployment_type(deployment_directive)))
-    return env_deploy_f[get_deployment_type(deployment_directive)](
-        deployment_directive)
+    return env_deploy_f[get_deployment_type(deployment_directive, bundle_key)](
+        deployment_directive, bundle_key)
 
 
-def get_environment_deploy_raw(deployment_directive):
+def get_environment_deploy_raw(deployment_directive, bundle_key):
     """Get the EnvironmentDeploy object for a raw deployment_directive.
 
     :returns: The EnvironmentDeploy for the give deployment directive.
     :rtype: EnvironmentDeploy
     """
     env_alias = get_default_env_deploy_name()
-    model_deploys = [
-        ModelDeploy(
-            DEFAULT_MODEL_ALIAS,
-            generate_model_name(),
-            deployment_directive,
-            [])]
+    if is_bundle_group(deployment_directive, bundle_key):
+        model_deploys = []
+        group_config = get_bundle_groups(bundle_key)[deployment_directive]
+        for run_overlay in group_config['run_overlays']:
+            overlays = []
+            if group_config.get('overlays'):
+                overlays.extend(group_config.get('overlays'))
+            overlays.append(run_overlay)
+            model_deploys.append(
+                ModelDeploy(
+                    DEFAULT_MODEL_ALIAS,
+                    generate_model_name(),
+                    group_config['group'],
+                    overlays))
+    else:
+        model_deploys = [
+            ModelDeploy(
+                DEFAULT_MODEL_ALIAS,
+                generate_model_name(),
+                deployment_directive,
+                [])]
     return EnvironmentDeploy(env_alias, model_deploys, False)
 
 
-def get_environment_deploy_multi_ordered(deployment_directive):
+def get_environment_deploy_multi_ordered(deployment_directive, bundle_key):
     """Get EnvironmentDeploy for a multi model ordered deployment_directive.
 
     :returns: The EnvironmentDeploy for the give deployment directive.
@@ -185,13 +218,27 @@ def get_environment_deploy_multi_ordered(deployment_directive):
     env_alias = list(deployment_directive)[0]
     model_deploys = []
     for model_alias_map in deployment_directive[env_alias]:
-        for alias, bundle in model_alias_map.items():
-            model_deploys.append(
-                ModelDeploy(
-                    alias,
-                    generate_model_name(),
-                    bundle,
-                    []))
+        if is_bundle_group(model_alias_map, bundle_key):
+            group_config = get_bundle_groups(bundle_key)[model_alias_map]
+            for run_overlay in group_config['run_overlays']:
+                overlays = []
+                if group_config.get('overlays'):
+                    overlays.extend(group_config.get('overlays'))
+                overlays.append(run_overlay)
+                model_deploys.append(
+                    ModelDeploy(
+                        model_alias_map,
+                        generate_model_name(),
+                        group_config['group'],
+                        overlays))
+        else:
+            for alias, bundle in model_alias_map.items():
+                model_deploys.append(
+                    ModelDeploy(
+                        alias,
+                        generate_model_name(),
+                        bundle,
+                        []))
     return EnvironmentDeploy(env_alias, model_deploys, True)
 
 
@@ -214,7 +261,7 @@ def get_model_deploy_bundle_group(deployment_directive):
     return model_deploys
 
 
-def get_environment_deploy_multi_unordered(deployment_directive):
+def get_environment_deploy_multi_unordered(deployment_directive, bundle_key):
     """Get EnvironmentDeploy for a multi model unordered deployment_directive.
 
     :returns: The EnvironmentDeploy for the give deployment directive.
@@ -283,17 +330,20 @@ def get_environment_deploys(bundle_key, deployment_name=None):
     """
     environment_deploys = []
     for bundle_mapping in get_charm_config()[bundle_key]:
-        if is_bundle_group(bundle_mapping):
-            model_deploys = get_model_deploy_bundle_group(bundle_mapping)
-            env_alias = get_default_env_deploy_name()
-            for model_deploy in model_deploys:
-                environment_deploys.append(
-                    EnvironmentDeploy(
-                        env_alias,
-                        [model_deploy],
-                        True))
+        if is_bundle_group_definition(bundle_mapping):
+            continue
+#        elif is_calling_bundle_group(bundle_mapping):
+#            model_deploys = get_model_deploy_bundle_group(bundle_mapping)
+#            env_alias = get_default_env_deploy_name()
+#            for model_deploy in model_deploys:
+#                environment_deploys.append(
+#                    EnvironmentDeploy(
+#                        env_alias,
+#                        [model_deploy],
+#                        True))
         else:
-            environment_deploys.append(get_environment_deploy(bundle_mapping))
+            logging.info("Adding {}".format(bundle_mapping))
+            environment_deploys.append(get_environment_deploy(bundle_mapping, bundle_key))
     return environment_deploys
 
 
