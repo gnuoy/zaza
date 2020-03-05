@@ -56,7 +56,8 @@ def run_env_deployment(env_deployment, keep_model=False, force=False):
                 utils.BUNDLE_DIR, '{}.yaml'.format(deployment.bundle)),
             deployment.model_name,
             model_ctxt=model_aliases,
-            force=force)
+            force=force,
+            overlays=deployment.overlays)
 
     # When deploying bundles with cross model relations, hooks may be triggered
     # in already deployedi models so wait for all models to settle.

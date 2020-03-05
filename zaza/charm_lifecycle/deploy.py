@@ -17,6 +17,7 @@ import argparse
 import jinja2
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 import yaml
@@ -273,7 +274,7 @@ def render_overlays(bundle, target_dir, model_ctxt=None):
     return overlays
 
 
-def deploy_bundle(bundle, model, model_ctxt=None, force=False):
+def deploy_bundle(bundle, model, model_ctxt=None, force=False, overlays=None):
     """Deploy the given bundle file in the specified model.
 
     The force param is used to enable zaza testing with Juju with charms
@@ -294,16 +295,33 @@ def deploy_bundle(bundle, model, model_ctxt=None, force=False):
     cmd = ['juju', 'deploy', '-m', model, bundle]
     if force:
         cmd.append('--force')
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        for overlay in render_overlays(bundle, tmpdirname,
-                                       model_ctxt=model_ctxt):
-            logging.info("Deploying overlay '{}' on to '{}' model"
-                         .format(overlay, model))
-            cmd.extend(['--overlay', overlay])
-        utils.check_output_logging(cmd)
+    subprocess.check_call(['rm', '-rf', '/tmp/zaza-debug'])
+    tmpdirname = '/tmp/zaza-debug'
+    os.mkdir(tmpdirname)
+    _overlays = render_overlays(bundle, tmpdirname, model_ctxt=model_ctxt)
+    for o in overlays:
+        tmp_overlay = render_overlay(o,
+            tmpdirname, 
+            model_ctxt=model_ctxt)
+        if not tmp_overlay:
+            raise Exception("Missing template {}".format(o))
+    for overlay in _overlays:
+        logging.info("Deploying overlay '{}' on to '{}' model"
+                     .format(overlay, model))
+        cmd.extend(['--overlay', overlay])
+    print(cmd)
+    utils.check_output_logging(cmd)
+#    assert 1 == 2
+#    with tempfile.TemporaryDirectory() as tmpdirname:
+#        for overlay in render_overlays(bundle, tmpdirname,
+#                                       model_ctxt=model_ctxt):
+#            logging.info("Deploying overlay '{}' on to '{}' model"
+#                         .format(overlay, model))
+#            cmd.extend(['--overlay', overlay])
+#        utils.check_output_logging(cmd)
 
 
-def deploy(bundle, model, wait=True, model_ctxt=None, force=False):
+def deploy(bundle, model, wait=True, model_ctxt=None, force=False, overlays=None):
     """Run all steps to complete deployment.
 
     :param bundle: Path to bundle file
@@ -319,7 +337,7 @@ def deploy(bundle, model, wait=True, model_ctxt=None, force=False):
     :type force: Boolean
     """
     run_report.register_event_start('Deploy Bundle')
-    deploy_bundle(bundle, model, model_ctxt=model_ctxt, force=force)
+    deploy_bundle(bundle, model, model_ctxt=model_ctxt, force=force, overlays=overlays)
     run_report.register_event_finish('Deploy Bundle')
     if wait:
         run_report.register_event_start('Wait for Deployment')
