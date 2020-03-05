@@ -185,6 +185,7 @@ def get_environment_deploy_raw(deployment_directive, bundle_key):
     :rtype: EnvironmentDeploy
     """
     env_alias = get_default_env_deploy_name()
+    env_deploys = []
     if is_bundle_group(deployment_directive, bundle_key):
         model_deploys = []
         group_config = get_bundle_groups(bundle_key)[deployment_directive]
@@ -193,12 +194,13 @@ def get_environment_deploy_raw(deployment_directive, bundle_key):
             if group_config.get('overlays'):
                 overlays.extend(group_config.get('overlays'))
             overlays.append(run_overlay)
-            model_deploys.append(
-                ModelDeploy(
-                    DEFAULT_MODEL_ALIAS,
-                    generate_model_name(),
-                    group_config['group'],
-                    overlays))
+            md = ModelDeploy(
+                DEFAULT_MODEL_ALIAS,
+                generate_model_name(),
+                group_config['group'],
+                overlays)
+            env_deploys.append(
+                EnvironmentDeploy(env_alias, [md], False))
     else:
         model_deploys = [
             ModelDeploy(
@@ -206,7 +208,9 @@ def get_environment_deploy_raw(deployment_directive, bundle_key):
                 generate_model_name(),
                 deployment_directive,
                 [])]
-    return EnvironmentDeploy(env_alias, model_deploys, False)
+        env_deploys.append(
+            EnvironmentDeploy(env_alias, model_deploys, False))
+    return env_deploys
 
 
 def get_environment_deploy_multi_ordered(deployment_directive, bundle_key):
@@ -217,20 +221,11 @@ def get_environment_deploy_multi_ordered(deployment_directive, bundle_key):
     """
     env_alias = list(deployment_directive)[0]
     model_deploys = []
+    group_deploys = []
+    env_deploys = []
     for model_alias_map in deployment_directive[env_alias]:
         if is_bundle_group(model_alias_map, bundle_key):
-            group_config = get_bundle_groups(bundle_key)[model_alias_map]
-            for run_overlay in group_config['run_overlays']:
-                overlays = []
-                if group_config.get('overlays'):
-                    overlays.extend(group_config.get('overlays'))
-                overlays.append(run_overlay)
-                model_deploys.append(
-                    ModelDeploy(
-                        model_alias_map,
-                        generate_model_name(),
-                        group_config['group'],
-                        overlays))
+            group_deploys.append(model_alias_map)
         else:
             for alias, bundle in model_alias_map.items():
                 model_deploys.append(
@@ -239,7 +234,31 @@ def get_environment_deploy_multi_ordered(deployment_directive, bundle_key):
                         generate_model_name(),
                         bundle,
                         []))
-    return EnvironmentDeploy(env_alias, model_deploys, True)
+    if model_deploys:
+        env_deploys.append(EnvironmentDeploy(env_alias, model_deploys, True))
+    if group_deploys:
+        for group in group_deploys:
+            group_config = get_bundle_groups(bundle_key)[group]
+            for run_overlay in group_config['run_overlays']:
+                overlays = []
+                if group_config.get('overlays'):
+                    overlays.extend(group_config.get('overlays'))
+                overlays.append(run_overlay)
+                md = ModelDeploy(
+                    env_alias,
+                    generate_model_name(),
+                    group_config['group'],
+                    overlays)
+                model_deploys.append(
+                    ModelDeploy(
+                        env_alias,
+                        generate_model_name(),
+                        group_config['group'],
+                        overlays))
+                env_deploys.append(
+                    EnvironmentDeploy(env_alias, [md], True)
+                )
+    return env_deploys
 
 
 def get_model_deploy_bundle_group(deployment_directive):
@@ -276,7 +295,7 @@ def get_environment_deploy_multi_unordered(deployment_directive, bundle_key):
                 generate_model_name(),
                 bundle,
                 []))
-    return EnvironmentDeploy(env_alias, model_deploys, True)
+    return [EnvironmentDeploy(env_alias, model_deploys, True)]
 
 
 def get_environment_deploy_single_aliased(deployment_directive):
@@ -287,14 +306,14 @@ def get_environment_deploy_single_aliased(deployment_directive):
     """
     env_alias = get_default_env_deploy_name()
     (alias, bundle) = list(deployment_directive.items())[0]
-    return EnvironmentDeploy(
+    return [EnvironmentDeploy(
         env_alias,
         [ModelDeploy(
             alias,
             generate_model_name(),
             bundle,
             [])],
-        True)
+        True)]
 
 
 def get_environment_deploys(bundle_key, deployment_name=None):
@@ -343,7 +362,7 @@ def get_environment_deploys(bundle_key, deployment_name=None):
 #                        True))
         else:
             logging.info("Adding {}".format(bundle_mapping))
-            environment_deploys.append(get_environment_deploy(bundle_mapping, bundle_key))
+            environment_deploys.extend(get_environment_deploy(bundle_mapping, bundle_key))
     return environment_deploys
 
 
