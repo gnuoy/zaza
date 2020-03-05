@@ -151,7 +151,6 @@ def get_environment_deploy(deployment_directive):
     :rtype: EnvironmentDeploy
     """
     env_deploy_f = {
-        BUNDLE_GROUP: get_environment_deploy_bundle_group,
         RAW_BUNDLE: get_environment_deploy_raw,
         MUTLI_ORDERED: get_environment_deploy_multi_ordered,
         SINGLE_ALIASED: get_environment_deploy_single_aliased,
@@ -196,7 +195,7 @@ def get_environment_deploy_multi_ordered(deployment_directive):
     return EnvironmentDeploy(env_alias, model_deploys, True)
 
 
-def get_environment_deploy_bundle_group(deployment_directive):
+def get_model_deploy_bundle_group(deployment_directive):
     env_alias = get_default_env_deploy_name()
     model_deploys = []
     for run_overlay in deployment_directive['run_overlays']:
@@ -214,7 +213,7 @@ def get_environment_deploy_bundle_group(deployment_directive):
                 generate_model_name(),
                 deployment_directive['group'],
                 overlays))
-    return EnvironmentDeploy(env_alias, model_deploys, True)
+    return model_deploys
 
 
 def get_environment_deploy_multi_unordered(deployment_directive):
@@ -286,7 +285,17 @@ def get_environment_deploys(bundle_key, deployment_name=None):
     """
     environment_deploys = []
     for bundle_mapping in get_charm_config()[bundle_key]:
-        environment_deploys.append(get_environment_deploy(bundle_mapping))
+        if is_bundle_group(bundle_mapping):
+            model_deploys = get_model_deploy_bundle_group(bundle_mapping)
+            env_alias = get_default_env_deploy_name()
+            for model_deploy in model_deploys:
+                environment_deploys.append(
+                    EnvironmentDeploy(
+                        env_alias,
+                        [model_deploy],
+                        True))
+        else:
+            environment_deploys.append(get_environment_deploy(bundle_mapping))
     return environment_deploys
 
 
