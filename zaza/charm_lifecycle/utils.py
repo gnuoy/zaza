@@ -207,9 +207,7 @@ def get_model_deploy_bundle_group(deployment_directive):
             ModelDeploy(
                 deployment_directive.get(
                     'model_alias',
-                    '{}_{}'.format(
-                        deployment_directive['group'],
-                        run_overlay)),
+                    DEFAULT_MODEL_ALIAS,)
                 generate_model_name(),
                 deployment_directive['group'],
                 overlays))
