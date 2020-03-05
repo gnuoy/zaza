@@ -305,6 +305,7 @@ def deploy_bundle(bundle, model, model_ctxt=None, force=False, overlays=None):
             model_ctxt=model_ctxt)
         if not tmp_overlay:
             raise Exception("Missing template {}".format(o))
+        _overlays.append(tmp_overlay)
     for overlay in _overlays:
         logging.info("Deploying overlay '{}' on to '{}' model"
                      .format(overlay, model))
