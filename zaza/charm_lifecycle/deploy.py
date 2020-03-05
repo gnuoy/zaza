@@ -300,7 +300,7 @@ def deploy_bundle(bundle, model, model_ctxt=None, force=False, overlays=None):
     os.mkdir(tmpdirname)
     _overlays = render_overlays(bundle, tmpdirname, model_ctxt=model_ctxt)
     for o in overlays:
-        tmp_overlay = render_overlay(o,
+        tmp_overlay = render_overlay("{}.yaml".format(o),
             tmpdirname, 
             model_ctxt=model_ctxt)
         if not tmp_overlay:
